@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="An interactive classroom explorer for piecewise functions." />
+  <title>Piece by Piece</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Piece by Piece home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>Piece by Piece</span>
+    </a>
+    <p class="tagline">A piecewise function explorer</p>
+    <button class="icon-button" id="resetButton" type="button" aria-label="Reset explorer" title="Reset explorer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M20 20v-6h-6M19 9a8 8 0 0 0-13.4-3L4 10m16 4-1.6 4A8 8 0 0 1 5 15"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Algebra II · Interactive Lab</p>
+        <h1>Build it <em>piece by piece.</em></h1>
+      </div>
+      <p class="intro-copy">Give each rule a place to live. Then watch the definition become a graph—one colored region at a time.</p>
+    </section>
+
+    <section class="workspace">
+      <aside class="definition-card">
+        <div class="card-heading">
+          <div>
+            <p class="step-label">01 · DEFINE</p>
+            <h2>Your function</h2>
+          </div>
+          <button class="text-button" id="exampleButton" type="button">Try an example</button>
+        </div>
+
+        <div class="piecewise-editor" aria-label="Piecewise function definition">
+          <div class="fx-label"><span>f</span>(x) =</div>
+          <div class="brace" aria-hidden="true">{</div>
+          <div class="rules" id="rules"></div>
+        </div>
+
+        <div class="hint-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5A7 7 0 1 1 15.5 14.5C14.5 15.3 14 16 14 18h-4c0-2-.5-2.7-1.5-3.5Z"/></svg>
+          <p><strong>Click any &lt; or &gt;</strong> to include that endpoint. The dot and boundary line on the graph will change with it.</p>
+        </div>
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+      </aside>
+
+      <section class="graph-card">
+        <div class="card-heading graph-heading">
+          <div>
+            <p class="step-label">02 · SEE</p>
+            <h2>The graph</h2>
+          </div>
+          <div class="graph-controls">
+            <button class="icon-button small" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+            <span id="windowLabel">−10 to 10</span>
+            <button class="icon-button small" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="graph" aria-label="Coordinate plane showing the piecewise function"></canvas>
+          <div class="empty-state" id="emptyState">
+            <span class="empty-icon">↗</span>
+            <strong>Your graph will appear here</strong>
+            <small>Enter a rule to begin</small>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i class="dot open"></i> open endpoint</span>
+          <span><i class="dot closed"></i> closed endpoint</span>
+          <span><i class="line dashed"></i> excluded boundary</span>
+          <span><i class="line solid"></i> included boundary</span>
+        </div>
+      </section>
+    </section>
+
+    <section class="notice">
+      <span>WHAT TO NOTICE</span>
+      <p>The formula tells you <strong>what to draw.</strong> The interval tells you <strong>where to draw it.</strong></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
