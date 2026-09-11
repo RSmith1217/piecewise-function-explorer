@@ -1,8 +1,8 @@
 const colors = ['#e96933', '#168b83', '#7658c7'];
 const defaults = [
-  { expr: '', low: '-∞', high: '-2', lowInc: false, highInc: false },
+  { expr: '', low: '-8', high: '-2', lowInc: true, highInc: false },
   { expr: '', low: '-2', high: '2', lowInc: true, highInc: true },
-  { expr: '', low: '2', high: '∞', lowInc: false, highInc: false }
+  { expr: '', low: '2', high: '8', lowInc: false, highInc: true }
 ];
 
 let pieces = structuredClone(defaults);
@@ -13,15 +13,13 @@ const ctx = canvas.getContext('2d');
 const message = document.querySelector('#message');
 
 function conditionHTML(p, i) {
-  const lowInfinite = p.low.includes('∞');
-  const highInfinite = p.high.includes('∞');
   return `
     <div class="condition" aria-label="Interval for piece ${i + 1}">
-      <input class="bound low" aria-label="Lower endpoint" value="${p.low}" ${lowInfinite ? 'disabled' : ''}>
+      <input class="bound low" aria-label="Lower endpoint" title="Enter a number or −∞" value="${p.low}">
       <button class="ineq low-op" type="button" aria-label="Toggle lower endpoint inclusion">${p.lowInc ? '≤' : '<'}</button>
       <span>x</span>
       <button class="ineq high-op" type="button" aria-label="Toggle upper endpoint inclusion">${p.highInc ? '≤' : '<'}</button>
-      <input class="bound high" aria-label="Upper endpoint" value="${p.high}" ${highInfinite ? 'disabled' : ''}>
+      <input class="bound high" aria-label="Upper endpoint" title="Enter a number or ∞" value="${p.high}">
     </div>`;
 }
 
@@ -37,13 +35,23 @@ function renderEditor() {
   rulesEl.querySelectorAll('.rule').forEach(rule => {
     const i = Number(rule.dataset.index);
     rule.querySelector('.expression').addEventListener('input', e => { pieces[i].expr = e.target.value; draw(); });
-    rule.querySelector('.low').addEventListener('input', e => { pieces[i].low = e.target.value; draw(); });
-    rule.querySelector('.high').addEventListener('input', e => { pieces[i].high = e.target.value; draw(); });
+    rule.querySelector('.low').addEventListener('input', e => {
+      pieces[i].low = e.target.value;
+      if (isInfiniteBound(pieces[i].low)) { pieces[i].lowInc = false; rule.querySelector('.low-op').textContent = '<'; }
+      draw();
+    });
+    rule.querySelector('.high').addEventListener('input', e => {
+      pieces[i].high = e.target.value;
+      if (isInfiniteBound(pieces[i].high)) { pieces[i].highInc = false; rule.querySelector('.high-op').textContent = '<'; }
+      draw();
+    });
     rule.querySelector('.low-op').addEventListener('click', e => {
+      if (isInfiniteBound(pieces[i].low)) return;
       pieces[i].lowInc = !pieces[i].lowInc;
       e.currentTarget.textContent = pieces[i].lowInc ? '≤' : '<'; draw();
     });
     rule.querySelector('.high-op').addEventListener('click', e => {
+      if (isInfiniteBound(pieces[i].high)) return;
       pieces[i].highInc = !pieces[i].highInc;
       e.currentTarget.textContent = pieces[i].highInc ? '≤' : '<'; draw();
     });
@@ -62,9 +70,13 @@ function compile(raw) {
   return new Function('x', `"use strict"; return (${s});`);
 }
 
-function numericBound(value, fallback) {
-  if (value.includes('∞')) return fallback;
-  const n = Number(value.replace('−', '-'));
+function isInfiniteBound(value) {
+  return /^(?:[-+]?∞|[-+]?(?:inf|infinity))$/i.test(value.trim());
+}
+
+function numericBound(value, side) {
+  if (isInfiniteBound(value)) return side === 'low' ? -Infinity : Infinity;
+  const n = Number(value.trim().replace('−', '-'));
   return Number.isFinite(n) ? n : NaN;
 }
 
@@ -102,8 +114,8 @@ function draw() {
     let fn;
     try { fn = compile(p.expr); } catch (e) { error ||= `Piece ${i + 1}: ${e.message}`; return; }
     if (!fn) return;
-    let low = numericBound(p.low, -range), high = numericBound(p.high, range);
-    if (!Number.isFinite(low) || !Number.isFinite(high)) { error ||= `Piece ${i + 1}: enter numeric endpoints.`; return; }
+    let low = numericBound(p.low, 'low'), high = numericBound(p.high, 'high');
+    if (Number.isNaN(low) || Number.isNaN(high)) { error ||= `Piece ${i + 1}: use numbers or ±∞ for endpoints.`; return; }
     if (low >= high) { error ||= `Piece ${i + 1}: the lower endpoint must be smaller.`; return; }
     graphed++;
     const left = Math.max(-range, low), right = Math.min(range, high);
@@ -136,8 +148,8 @@ function draw() {
       ctx.fillStyle = included ? colors[i] : '#fff'; ctx.fill();
       ctx.strokeStyle = colors[i]; ctx.lineWidth = 2.5; ctx.stroke();
     }
-    if (!p.low.includes('∞')) endpoint(low, p.lowInc);
-    if (!p.high.includes('∞')) endpoint(high, p.highInc);
+    if (!isInfiniteBound(p.low)) endpoint(low, p.lowInc);
+    if (!isInfiniteBound(p.high)) endpoint(high, p.highInc);
   });
   message.textContent = error;
   document.querySelector('#emptyState').classList.toggle('hidden', graphed > 0);
